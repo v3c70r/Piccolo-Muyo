@@ -1,5 +1,6 @@
 #include "runtime/function/physics/physics_scene.h"
 
+#include "Jolt/Math/Real.h"
 #include "core/base/macro.h"
 
 #include "runtime/resource/res_type/components/rigid_body.h"
@@ -35,6 +36,7 @@ namespace Piccolo
     {
         static_assert(s_invalid_rigidbody_id == JPH::BodyID::cInvalidBodyID);
 
+        JPH::RegisterDefaultAllocator();
         JPH::Factory::sInstance = new JPH::Factory();
         JPH::RegisterTypes();
 
@@ -54,8 +56,8 @@ namespace Piccolo
                                               m_config.m_max_body_pairs,
                                               m_config.m_max_contact_constraints,
                                               *(m_physics.m_jolt_broad_phase_layer_interface),
-                                              BroadPhaseCanCollide,
-                                              ObjectCanCollide);
+                                              m_broadphase_can_collide_filter,
+                                              m_object_can_collide_filter);
         // use the default setting
         m_physics.m_jolt_physics_system->SetPhysicsSettings(JPH::PhysicsSettings());
 
@@ -190,15 +192,16 @@ namespace Piccolo
     {
         const JPH::NarrowPhaseQuery& scene_query = m_physics.m_jolt_physics_system->GetNarrowPhaseQuery();
 
-        JPH::RayCast ray;
+        JPH::RRayCast ray;
         ray.mOrigin    = toVec3(ray_origin);
         ray.mDirection = toVec3(ray_directory.normalisedCopy() * ray_length);
 
         JPH::RayCastSettings raycast_setting;
 
         JPH::AllHitCollisionCollector<JPH::CastRayCollector> collector;
+        //JPH::CastRayCollector collector;
 
-        scene_query.CastRay(ray, raycast_setting, collector);
+        scene_query.CastRay(ray, raycast_setting, collector, {});
 
         if (!collector.HadHit())
         {
@@ -254,14 +257,14 @@ namespace Piccolo
             return false;
         }
 
-        JPH::ShapeCast shape_cast =
-            JPH::ShapeCast::sFromWorldTransform(jph_shape,
+        JPH::RShapeCast shape_cast =
+            JPH::RShapeCast::sFromWorldTransform(jph_shape,
                                                 JPH::Vec3::sReplicate(1.f),
                                                 toMat44(shape_global_transform),
                                                 toVec3(sweep_direction.normalisedCopy() * sweep_length));
 
         JPH::AllHitCollisionCollector<JPH::CastShapeCollector> collector;
-        scene_query.CastShape(shape_cast, JPH::ShapeCastSettings(), collector);
+        scene_query.CastShape(shape_cast, JPH::ShapeCastSettings(), JPH::RVec3Arg(0.0, 0.0, 0.0), collector, {});
         if (!collector.HadHit())
         {
             return false;
@@ -309,8 +312,9 @@ namespace Piccolo
         JPH::AnyHitCollisionCollector<JPH::CollideShapeCollector> collector;
         scene_query.CollideShape(jph_shape,
                                  JPH::Vec3::sReplicate(1.0f),
-                                 toMat44(shape_global_transform),
+                                 toRMat44(shape_global_transform),
                                  JPH::CollideShapeSettings(),
+                                 JPH::RVec3Arg(0.0, 0.0, 0.0),
                                  collector);
 
         return collector.HadHit();

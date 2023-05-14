@@ -66,10 +66,18 @@ namespace Piccolo
     };
 
     /// Function that determines if two object layers can collide
-    bool ObjectCanCollide(JPH::ObjectLayer inObject1, JPH::ObjectLayer inObject2);
+    class ObjectCanCollideFilter : public JPH::ObjectLayerPairFilter
+    {
+        public:
+        virtual bool			ShouldCollide(JPH::ObjectLayer inObject1, JPH::ObjectLayer inObject2) const override;
+    };
 
     /// Function that determines if two broadphase layers can collide
-    bool BroadPhaseCanCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2);
+    class BroadPhaseCanCollidFilter : public JPH::ObjectVsBroadPhaseLayerFilter
+    {
+        public:
+        virtual bool					ShouldCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2) const override;
+    };
 
     inline JPH::Vec3 toVec3(Vector3 v) { return {v.x, v.y, v.z}; }
     inline Vector3   toVec3(JPH::Vec3 v) { return {v.GetX(), v.GetY(), v.GetZ()}; }
@@ -83,6 +91,9 @@ namespace Piccolo
     JPH::Mat44 toMat44(const Matrix4x4& m);
 
     Matrix4x4 toMat44(const JPH::Mat44& m);
+
+    JPH::RMat44 toRMat44(const Matrix4x4& m);
+
 
     JPH::Shape* toShape(const RigidBodyShape& shape, const Vector3& scale);
 

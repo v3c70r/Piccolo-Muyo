@@ -1,5 +1,6 @@
 #pragma once
 
+#include "function/physics/jolt/utils.h"
 #include "runtime/core/math/axis_aligned.h"
 
 #include "runtime/function/physics/physics_config.h"
@@ -45,7 +46,7 @@ namespace Piccolo
         };
 
     public:
-        PhysicsScene(const Vector3& gravity);
+        explicit PhysicsScene(const Vector3& gravity);
         virtual ~PhysicsScene();
 
         const Vector3& getGravity() const { return m_config.m_gravity; }
@@ -97,5 +98,7 @@ namespace Piccolo
         PhysicsConfig m_config;
 
         std::vector<uint32_t> m_pending_remove_bodies;
+        ObjectCanCollideFilter m_object_can_collide_filter;
+        BroadPhaseCanCollidFilter m_broadphase_can_collide_filter;
     };
 } // namespace Piccolo

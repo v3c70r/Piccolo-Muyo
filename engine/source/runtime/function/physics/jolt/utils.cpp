@@ -1,5 +1,6 @@
 #include "runtime/function/physics/jolt/utils.h"
 
+#include "Jolt/Math/Real.h"
 #include "runtime/resource/res_type/components/rigid_body.h"
 
 #include "Jolt/Physics/Collision/Shape/BoxShape.h"
@@ -44,7 +45,7 @@ namespace Piccolo
     }
 #endif // JPH_EXTERNAL_PROFILE || JPH_PROFILE_ENABLED
 
-    bool ObjectCanCollide(JPH::ObjectLayer inObject1, JPH::ObjectLayer inObject2)
+    bool ObjectCanCollideFilter::ShouldCollide(JPH::ObjectLayer inObject1, JPH::ObjectLayer inObject2) const
     {
         switch (inObject1)
         {
@@ -67,7 +68,7 @@ namespace Piccolo
         }
     }
 
-    bool BroadPhaseCanCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2)
+    bool BroadPhaseCanCollidFilter::ShouldCollide(JPH::ObjectLayer inLayer1, JPH::BroadPhaseLayer inLayer2) const
     {
         switch (inLayer1)
         {
@@ -110,6 +111,17 @@ namespace Piccolo
         }
 
         return Matrix4x4(cols[0], cols[1], cols[2], cols[3]).transpose();
+    }
+
+    JPH::RMat44 toRMat44(const Matrix4x4& m)
+    {
+        JPH::Vec4 cols[4];
+        for (int i = 0; i < 4; i++)
+        {
+            cols[i] = JPH::Vec4(m.m_mat[0][i], m.m_mat[1][i], m.m_mat[2][i], m.m_mat[3][i]);
+        }
+
+        return {cols[0], cols[1], cols[2], cols[3]};
     }
 
     JPH::Shape* toShape(const RigidBodyShape& shape, const Vector3& scale)

@@ -58,6 +58,16 @@ if(NOT TARGET Jolt)
         endif()
     endif()
 
+    if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+        #include(CheckCXXCompilerFlag)
+        #check_cxx_compiler_flag("-Wno-unqualified-std-cast-call" COMPILER_CHECK_UNQUALIFIED)
+        #if(COMPILER_CHECK_UNQUALIFIED)
+        target_compile_options(Jolt PRIVATE "/WX-")
+        #endif()
+    endif()
+
+
+
     if(ENABLE_PHYSICS_DEBUG_RENDERER)
         set_target_properties(Jolt TestFramework
             PROPERTIES 
